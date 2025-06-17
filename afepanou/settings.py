@@ -140,7 +140,13 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
-
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://afepanoubackend.up.railway.app',
+    'https://*.railway.app',
+]
+if os.environ.get('CSRF_TRUSTED_ORIGINS'):
+    CSRF_TRUSTED_ORIGINS.extend(os.environ.get('CSRF_TRUSTED_ORIGINS').split(','))
 # Cache with Redis
 if os.environ.get('REDIS_URL'):
     CACHES = {
