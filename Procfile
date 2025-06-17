@@ -1,1 +1,1 @@
-web: gunicorn afepanou.wsgi --log-file -
+web: gunicorn afepanou.wsgi:application --bind 0.0.0.0:$PORT
