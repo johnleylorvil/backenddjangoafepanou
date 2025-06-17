@@ -54,8 +54,9 @@ RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Port à exposer
+# Port à exposer - Exposer à la fois 8000 (développement) et $PORT (production)
 EXPOSE 8000
 
 # Commande pour démarrer l'application
-CMD ["gunicorn", "afepanou.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+# Cette ligne est la clé du problème - remplacer par un script shell qui lira la variable PORT
+CMD bash -c "gunicorn afepanou.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 120"

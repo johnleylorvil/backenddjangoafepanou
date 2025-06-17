@@ -32,6 +32,9 @@ if [ "$REDIS_URL" ]; then
   fi
 fi
 
+# Vérifier la variable PORT
+echo "Utilisation du port: ${PORT:-8000}"
+
 # Créer les répertoires nécessaires s'ils n'existent pas
 mkdir -p /app/staticfiles
 mkdir -p /app/media
