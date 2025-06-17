@@ -20,6 +20,8 @@ django-filter
 djangorestframework-simplejwt
 django-cors-headers
 
+drf-yasg
+
 # Stockage B2 Blackblaze
 django-storages
 b2sdk
