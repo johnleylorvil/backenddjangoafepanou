@@ -1,0 +1,201 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .doc-container {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .doc-section {
+      margin-bottom: 30px;
+    }
+    .back-link {
+      margin-bottom: 20px;
+      display: block;
+    }
+    pre {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .api-endpoint {
+      background-color: #e3f2fd;
+      padding: 10px 15px;
+      border-left: 4px solid #2196f3;
+      margin-bottom: 15px;
+      border-radius: 0 5px 5px 0;
+    }
+    .method {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .method-post {
+      color: #e91e63;
+    }
+    .note {
+      background-color: #fff3cd;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-container">
+  <a href="{% url 'admin:payments_paymenttransaction_changelist' %}" class="back-link">
+    &larr; {% trans "Retour à la liste des transactions" %}
+  </a>
+  
+  <h1>{% trans "Documentation d'intégration MonCash" %}</h1>
+  
+  <div class="doc-section">
+    <h2>{% trans "Introduction" %}</h2>
+    <p>
+      MonCash est une solution de paiement mobile développée par Digicel Haiti. Cette documentation explique comment
+      notre système est intégré avec l'API MonCash pour traiter les paiements.
+    </p>
+  </div>
+  
+  <div class="doc-section">
+    <h2>{% trans "Flux de paiement" %}</h2>
+    <ol>
+      <li>L'utilisateur crée une commande sur notre plateforme</li>
+      <li>Le système génère une transaction de paiement avec un statut "initiée"</li>
+      <li>L'utilisateur est redirigé vers la page de paiement MonCash</li>
+      <li>L'utilisateur effectue le paiement avec son téléphone</li>
+      <li>MonCash nous notifie du résultat de la transaction</li>
+      <li>Le système met à jour le statut de la transaction (succès ou échec)</li>
+      <li>La commande est mise à jour en fonction du résultat du paiement</li>
+    </ol>
+  </div>
+  
+  <div class="doc-section">
+    <h2>{% trans "Endpoints d'API MonCash utilisés" %}</h2>
+    
+    <div class="api-endpoint">
+      <div><span class="method method-post">POST</span> <code>/oauth/token</code></div>
+      <p>Permet d'obtenir un token d'authentification pour les appels API suivants.</p>
+    </div>
+    
+    <div class="api-endpoint">
+      <div><span class="method method-post">POST</span> <code>/v1/CreatePayment</code></div>
+      <p>Crée une nouvelle transaction de paiement et retourne un token pour rediriger l'utilisateur.</p>
+    </div>
+    
+    <div class="api-endpoint">
+      <div><span class="method method-post">POST</span> <code>/v1/RetrieveTransactionPayment</code></div>
+      <p>Récupère les détails d'une transaction par son ID de transaction.</p>
+    </div>
+    
+    <div class="api-endpoint">
+      <div><span class="method method-post">POST</span> <code>/v1/RetrieveOrderPayment</code></div>
+      <p>Récupère les détails d'une transaction par son ID de commande externe.</p>
+    </div>
+  </div>
+  
+  <div class="doc-section">
+    <h2>{% trans "Exemple de code d'intégration" %}</h2>
+    <pre>
+# Exemple simplifié d'intégration MonCash
+
+import requests
+import json
+import base64
+import uuid
+
+def get_access_token(client_id, client_secret):
+    """Obtenir un token d'accès pour l'API MonCash"""
+    url = "https://sandbox.moncashbutton.digicelgroup.com/Api/oauth/token"
+    
+    auth_string = f"{client_id}:{client_secret}"
+    auth_bytes = auth_string.encode('ascii')
+    auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+    
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Basic {auth_b64}"
+    }
+    
+    payload = "scope=read,write&grant_type=client_credentials"
+    
+    response = requests.post(url, headers=headers, data=payload)
+    return response.json()["access_token"]
+
+def create_payment(token, order_id, amount):
+    """Créer une transaction de paiement"""
+    url = "https://sandbox.moncashbutton.digicelgroup.com/Api/v1/CreatePayment"
+    
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "amount": amount,
+        "orderId": order_id
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
+
+def retrieve_transaction(token, transaction_id):
+    """Récupérer les détails d'une transaction"""
+    url = "https://sandbox.moncashbutton.digicelgroup.com/Api/v1/RetrieveTransactionPayment"
+    
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "transactionId": transaction_id
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
+
+# Exemple d'utilisation
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+
+# Générer un ID de commande unique
+order_id = str(uuid.uuid4())
+
+# Montant à payer
+amount = 1000  # 1000 HTG
+
+# Obtenir le token d'accès
+token = get_access_token(client_id, client_secret)
+
+# Créer la transaction
+payment = create_payment(token, order_id, amount)
+
+# URL pour rediriger l'utilisateur
+redirect_url = f"https://sandbox.moncashbutton.digicelgroup.com/Moncash-middleware/Payment/Redirect?token={payment['payment_token']['token']}"
+
+print(f"Rediriger l'utilisateur vers: {redirect_url}")
+    </pre>
+    
+    <div class="note">
+      <strong>Note:</strong> Cet exemple utilise l'environnement sandbox de MonCash. Pour la production, utilisez
+      les URLs de production fournies par Digicel.
+    </div>
+  </div>
+  
+  <div class="doc-section">
+    <h2>{% trans "Ressources additionnelles" %}</h2>
+    <ul>
+      <li><a href="https://moncashbutton.digicelgroup.com/Moncash-business/api" target="_blank">Documentation officielle MonCash</a></li>
+      <li><a href="https://developer.moncash.com" target="_blank">Portail développeur MonCash</a></li>
+      <li><a href="{% url 'admin:payments_moncash_dashboard' %}">Tableau de bord MonCash</a></li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

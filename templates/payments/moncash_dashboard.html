@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .dashboard-container {
+      padding: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .stat-label {
+      color: #666;
+      font-size: 14px;
+    }
+    .success-stat { color: #2ecc71; }
+    .pending-stat { color: #3498db; }
+    .failed-stat { color: #e74c3c; }
+    .total-stat { color: #9b59b6; }
+    .variation {
+      font-size: 14px;
+      padding: 3px 8px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    .variation-positive {
+      background-color: rgba(46, 204, 113, 0.2);
+      color: #27ae60;
+    }
+    .variation-negative {
+      background-color: rgba(231, 76, 60, 0.2);
+      color: #c0392b;
+    }
+    .back-link {
+      margin-bottom: 20px;
+      display: block;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <a href="{% url 'admin:payments_paymenttransaction_changelist' %}" class="back-link">
+    &larr; {% trans "Retour à la liste des transactions" %}
+  </a>
+  
+  <h1>{% trans "Tableau de bord MonCash" %} - {{ current_month }}</h1>
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">{% trans "Transactions réussies" %}</div>
+      <div class="stat-value success-stat">{{ current_stats.success }}</div>
+      {% if success_variation != 0 %}
+        <div class="variation {% if success_variation > 0 %}variation-positive{% else %}variation-negative{% endif %}">
+          {% if success_variation > 0 %}+{% endif %}{{ success_variation|floatformat:1 }}% vs mois précédent
+        </div>
+      {% endif %}
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">{% trans "Transactions en attente" %}</div>
+      <div class="stat-value pending-stat">{{ current_stats.pending }}</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">{% trans "Transactions échouées" %}</div>
+      <div class="stat-value failed-stat">{{ current_stats.failed }}</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-label">{% trans "Montant total perçu" %}</div>
+      <div class="stat-value total-stat">{{ current_stats.amount|floatformat:2 }} HTG</div>
+      {% if amount_variation != 0 %}
+        <div class="variation {% if amount_variation > 0 %}variation-positive{% else %}variation-negative{% endif %}">
+          {% if amount_variation > 0 %}+{% endif %}{{ amount_variation|floatformat:1 }}% vs mois précédent
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <h2>{% trans "Comment utiliser ce tableau de bord" %}</h2>
+  <p>
+    Ce tableau de bord vous permet de surveiller les performances des paiements MonCash dans votre système.
+    Utilisez ces métriques pour :
+  </p>
+  <ul>
+    <li>Suivre le taux de réussite des paiements</li>
+    <li>Identifier les tendances dans les revenus</li>
+    <li>Détecter les problèmes potentiels avec l'intégration MonCash</li>
+  </ul>
+  
+  <h2>{% trans "Liens utiles" %}</h2>
+  <ul>
+    <li><a href="{% url 'admin:payments_moncash_documentation' %}">Documentation MonCash</a></li>
+    <li><a href="https://moncashbutton.digicelgroup.com/Moncash-business/api" target="_blank">Documentation officielle MonCash</a></li>
+  </ul>
+</div>
+{% endblock %}

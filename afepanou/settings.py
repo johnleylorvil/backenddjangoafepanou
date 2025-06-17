@@ -157,19 +157,38 @@ if os.environ.get('REDIS_URL'):
     SESSION_CACHE_ALIAS = 'default'
 
 # B2 Blackblaze Storage
-if os.environ.get('USE_B2_STORAGE', 'False') == 'True':
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # Keep static files on server
-    
-    # Blackblaze settings (using S3 compatible API)
-    AWS_ACCESS_KEY_ID = os.environ.get('B2_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('B2_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.environ.get('B2_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = 'https://s3.us-west-000.backblazeb2.com'  # Update region as needed
-    AWS_S3_REGION_NAME = 'us-west-000'  # Update as needed
-    AWS_LOCATION = os.environ.get('B2_LOCATION', '')  # Optional path prefix
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_QUERYSTRING_AUTH = False
-    AWS_S3_FILE_OVERWRITE = False
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Configuration des stockages Django - Séparation claire B2/Local
+STORAGES = {
+    # Fichiers média : stockés sur Backblaze B2
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+    },
+    # Fichiers statiques : stockés localement avec WhiteNoise
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+# === CONFIGURATION BACKBLAZE B2 (MÉDIAS UNIQUEMENT) ===
+AWS_ACCESS_KEY_ID = os.environ.get('B2_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('B2_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('B2_BUCKET_NAME')
+AWS_S3_ENDPOINT_URL = 'https://s3.us-west-000.backblazeb2.com'  # Adapter selon votre région
+AWS_S3_REGION_NAME = 'us-west-000'  # Adapter selon votre région
+AWS_LOCATION = os.environ.get('B2_LOCATION', '')  # Préfixe de chemin optionnel pour les médias
+AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+AWS_S3_CUSTOM_DOMAIN = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',  # Cache de 24h pour les fichiers média
+}
+
+# === CONFIGURATION FICHIERS STATIQUES (DJANGO/WHITENOISE) ===
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# === CONFIGURATION FICHIERS MÉDIAS (B2) ===
+MEDIA_URL = f'https://{os.environ.get("B2_BUCKET_NAME")}.s3.{AWS_S3_REGION_NAME}.backblazeb2.com/'
+if os.environ.get('B2_LOCATION'):
+    MEDIA_URL += f'{os.environ.get("B2_LOCATION")}/'
