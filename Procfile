@@ -1,0 +1,1 @@
+web: gunicorn afepanou.wsgi --log-file -

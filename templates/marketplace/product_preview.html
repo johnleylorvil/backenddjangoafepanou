@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ product.name }} - Aperçu</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .preview-banner { background: #ffdc00; color: #333; padding: 10px; text-align: center; margin-bottom: 20px; }
+        .product-main { display: flex; gap: 30px; margin-bottom: 30px; }
+        .product-images { flex: 1; }
+        .main-image { width: 100%; height: auto; margin-bottom: 10px; }
+        .image-thumbnails { display: flex; gap: 10px; }
+        .thumbnail { width: 60px; height: 60px; object-fit: cover; }
+        .product-details { flex: 1; }
+        .product-title { font-size: 24px; margin-bottom: 10px; }
+        .product-price { font-size: 22px; color: #e74c3c; font-weight: bold; margin-bottom: 15px; }
+        .product-status { display: inline-block; padding: 3px 8px; border-radius: 10px; color: white; margin-bottom: 15px; }
+        .status-available { background-color: #2ecc71; }
+        .status-out_of_stock { background-color: #e74c3c; }
+        .status-discontinued { background-color: #95a5a6; }
+        .product-type { display: inline-block; padding: 3px 8px; border-radius: 10px; color: white; margin-bottom: 15px; margin-right: 10px; }
+        .type-physical { background-color: #3498db; }
+        .type-service { background-color: #2ecc71; }
+        .type-training { background-color: #f39c12; }
+        .product-store { margin-bottom: 15px; }
+        .product-description { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    {% if is_preview %}
+    <div class="preview-banner">
+        <strong>Mode aperçu</strong> - Ceci est un aperçu du produit qui n'est pas visible par le public.
+    </div>
+    {% endif %}
+    
+    <div class="product-main">
+        <div class="product-images">
+            {% with main_image=product.images.filter.first %}
+            {% if main_image %}
+            <img src="{{ main_image.image.url }}" alt="{{ product.name }}" class="main-image">
+            {% endif %}
+            {% endwith %}
+            
+            <div class="image-thumbnails">
+                {% for image in product.images.all|slice:":4" %}
+                <img src="{{ image.image.url }}" alt="{{ product.name }}" class="thumbnail">
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="product-details">
+            <h1 class="product-title">{{ product.name }}</h1>
+            
+            <div class="product-price">{{ product.price }} {{ product.get_currency_display }}</div>
+            
+            <div>
+                <span class="product-type type-{{ product.product_type }}">{{ product.get_product_type_display }}</span>
+                <span class="product-status status-{{ product.status }}">{{ product.get_status_display }}</span>
+            </div>
+            
+            <div class="product-store">
+                <strong>Boutique:</strong> {{ product.store.name }}
+            </div>
+            
+            {% if product.stock_quantity %}
+            <div><strong>Stock:</strong> {{ product.stock_quantity }}</div>
+            {% endif %}
+            
+            {% if product.duration %}
+            <div><strong>Durée:</strong> {{ product.duration }}</div>
+            {% endif %}
+            
+            {% if product.format %}
+            <div><strong>Format:</strong> {{ product.format }}</div>
+            {% endif %}
+            
+            <div class="product-categories">
+                <strong>Catégories:</strong>
+                {% for category in product.categories.all %}
+                    {{ category.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="product-tags">
+                <strong>Tags:</strong>
+                {% for tag in product.tags.all %}
+                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="product-description">
+        <h2>Description</h2>
+        {{ product.description|safe }}
+    </div>
+</body>
+</html>

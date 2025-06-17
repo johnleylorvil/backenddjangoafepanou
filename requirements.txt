@@ -1,0 +1,34 @@
+# Base Django
+Django
+python-dotenv
+
+# Pour RichTextField
+django-ckeditor
+
+# Pour les images
+Pillow
+
+# Base de données PostgreSQL
+psycopg2-binary
+
+# API REST
+djangorestframework
+markdown
+django-filter
+
+# JWT Authentication
+djangorestframework-simplejwt
+django-cors-headers
+
+# Stockage B2 Blackblaze
+django-storages
+b2sdk
+
+# Cache Redis
+django-redis
+redis
+django-storages
+# Déploiement
+gunicorn
+whitenoise
+dj-database-url

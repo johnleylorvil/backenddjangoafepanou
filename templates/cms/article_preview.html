@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ article.title }} - Aperçu</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { margin-bottom: 20px; }
+        .preview-banner { background: #ffdc00; color: #333; padding: 10px; text-align: center; margin-bottom: 20px; }
+        .featured-image { max-width: 100%; height: auto; margin-bottom: 20px; }
+        .article-meta { color: #666; margin-bottom: 20px; }
+        .article-content { margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    {% if is_preview %}
+    <div class="preview-banner">
+        <strong>Mode aperçu</strong> - Ceci est un aperçu de l'article qui n'est pas visible par le public.
+    </div>
+    {% endif %}
+    
+    <header>
+        <h1>{{ article.title }}</h1>
+        <div class="article-meta">
+            Par {{ article.author }} | 
+            {% if article.published_at %}
+                Publié le {{ article.published_at|date:"d F Y" }}
+            {% else %}
+                Non publié
+            {% endif %}
+        </div>
+    </header>
+    
+    {% if article.featured_image %}
+    <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="featured-image">
+    {% endif %}
+    
+    <div class="article-content">
+        {{ article.content|safe }}
+    </div>
+    
+    <footer>
+        <div>
+            Catégories: 
+            {% for category in article.categories.all %}
+                {{ category.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+        <div>
+            Tags: 
+            {% for tag in article.tags.all %}
+                {{ tag.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    </footer>
+</body>
+</html>

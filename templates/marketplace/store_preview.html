@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ store.name }} - Aperçu</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { margin-bottom: 20px; position: relative; }
+        .preview-banner { background: #ffdc00; color: #333; padding: 10px; text-align: center; margin-bottom: 20px; }
+        .store-banner { width: 100%; height: 200px; object-fit: cover; margin-bottom: 20px; }
+        .store-logo { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; position: absolute; bottom: -50px; left: 20px; border: 5px solid white; }
+        .store-info { margin-top: 60px; margin-bottom: 30px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .product-card { border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
+        .product-image { width: 100%; height: 150px; object-fit: cover; }
+        .product-info { padding: 10px; }
+        .product-title { font-weight: bold; margin-bottom: 5px; }
+        .product-price { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    {% if is_preview %}
+    <div class="preview-banner">
+        <strong>Mode aperçu</strong> - Ceci est un aperçu de la boutique qui n'est pas visible par le public.
+    </div>
+    {% endif %}
+    
+    <header>
+        {% if store.banner %}
+        <img src="{{ store.banner.url }}" alt="{{ store.name }}" class="store-banner">
+        {% endif %}
+        
+        {% if store.logo %}
+        <img src="{{ store.logo.url }}" alt="{{ store.name }}" class="store-logo">
+        {% endif %}
+    </header>
+    
+    <div class="store-info">
+        <h1>{{ store.name }}</h1>
+        <div>{{ store.description|safe }}</div>
+    </div>
+    
+    <h2>Produits</h2>
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            {% with image=product.images.filter.first %}
+            {% if image %}
+            <img src="{{ image.image.url }}" alt="{{ product.name }}" class="product-image">
+            {% endif %}
+            {% endwith %}
+            
+            <div class="product-info">
+                <div class="product-title">{{ product.name }}</div>
+                <div class="product-price">{{ product.price }} {{ product.get_currency_display }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Aucun produit disponible dans cette boutique.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
